@@ -1,7 +1,5 @@
 ![Lint-free](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/lint.yml/badge.svg)
 
-
-
 # Audio Note Web App
 
 This project is a Flask web application using PyMongo that allows users to record audio memos, which are then transcribed using AI-assisted speech recognition. The app automatically generates structured notes from the transcriptions, helping users organize and retrieve their thoughts efficiently.
