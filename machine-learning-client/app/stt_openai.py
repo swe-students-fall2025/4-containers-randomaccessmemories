@@ -1,0 +1,1 @@
+# STT via OpenAI Audio API (bytes -> transcript)
