@@ -1,5 +1,5 @@
-
 """Flask app for AI-assisted audio notes with PyMongo."""
+
 import os
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
@@ -12,6 +12,7 @@ app.config["MONGO_URI"] = (
     f"{os.getenv('MONGO_DB', 'app_db')}"
 )
 mongo = PyMongo(app)
+
 
 def get_notes_collection():
     """Get the notes collection from MongoDB."""
@@ -31,7 +32,7 @@ def add_note():
     note = {
         "audio_url": data.get("audio_url"),
         "transcription": data.get("transcription"),
-        "structured_notes": data.get("structured_notes", {})
+        "structured_notes": data.get("structured_notes", {}),
     }
     notes_col = get_notes_collection()
     result = notes_col.insert_one(note)
