@@ -18,39 +18,41 @@ Follow these steps to set up and launch the full application stack (MongoDB, mac
 
 1. **Clone the repository** (if you haven't already):
 
-	```sh
-	git clone <repo-url>
-	cd 4-containers-randomaccessmemories
-	```
+```sh
+git clone <repo-url>
+cd 4-containers-randomaccessmemories
+```
 
-2. **Copy the example environment file and edit as needed:**
+2.**Copy the example environment file and edit as needed:**
 
-	```sh
-	cp .env.example .env
-	# Edit .env to set your desired values (or use the defaults for testing)
-	```
+```sh
+cp .env.example .env
+# Edit .env to set your desired values (or use the defaults for testing)
+```
 
-3. **Build and start all services with Docker Compose:**
+3.**Build and start all services with Docker Compose:**
 
-	```sh
-	docker-compose up --build
-	```
+```sh
+docker-compose up --build
+```
 
-	This will start:
-	- MongoDB (database)
-	- Machine learning client (Python)
-	- Web app (Flask)
+This will start:
 
-4. **Access the web app:**
+- MongoDB (database)
+- Machine learning client (Python)
+- Web app (Flask)
 
-	- Open your browser and go to: [http://localhost:5000](http://localhost:5000)
+4.**Access the web app:**
 
-5. **Stopping the app:**
+- Open your browser and go to: [http://localhost:5000](http://localhost:5000)
 
-	- Press `Ctrl+C` in the terminal running Docker Compose, or run:
-	  ```sh
-	  docker-compose down
-	  ```
+5.**Stopping the app:**
+
+- Press `Ctrl+C` in the terminal running Docker Compose, or run:
+
+```sh
+docker-compose down
+```
 
 **Note:**
 
