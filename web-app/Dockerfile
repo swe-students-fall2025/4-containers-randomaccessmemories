@@ -1,5 +1,5 @@
 # Dockerfile for Web App
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -16,5 +16,5 @@ ENV PYTHONUNBUFFERED=1
 # Expose Flask default port
 EXPOSE 5000
 
-# Default command (update as needed)
-CMD ["flask", "run", "--host=0.0.0.0"]
+# Default command (run the app)
+CMD ["python", "app.py"]
