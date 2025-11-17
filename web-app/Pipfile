@@ -18,3 +18,26 @@ pylint = "*"
 
 [requires]
 python_version = "3.12"
+
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+pymongo = "*"
+flask-cors = "*"
+werkzeug = "*"
+python-dotenv = "*"
+openai = "*"
+
+[dev-packages]
+pytest = "*"
+pytest-cov = "*"
+black = "*"
+pylint = "*"
+# pytest-flask = "*"   # optional if you prefer test client helpers
+
+[requires]
+python_version = "3.12"
