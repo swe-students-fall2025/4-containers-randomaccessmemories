@@ -5,11 +5,16 @@ name = "pypi"
 
 [packages]
 flask = "*"
-flask-pymongo = "*"
-pylint = "*"
-black = "*"
+pymongo = "*"
+flask-cors = "*"
+werkzeug = "*"
+python-dotenv = "*"
 
 [dev-packages]
+pytest = "*"
+pytest-cov = "*"
+black = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.12"
