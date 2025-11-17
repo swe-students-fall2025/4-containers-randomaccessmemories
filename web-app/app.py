@@ -1,21 +1,22 @@
-"""Flask app for AI-assisted audio notes."""
+"""Flask app for AI-assisted audio notes with PyMongo."""
 
-import sys
 import os
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_pymongo import PyMongo
 
-# Add app directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "app"))
-
-from app.config import Config
-from app.db import get_notes_collection
-
-# Create Flask app
 app = Flask(__name__)
-app.config.from_object(Config)
-app.config["MAX_CONTENT_LENGTH"] = Config.MAX_FILE_MB * 1024 * 1024
-CORS(app)
+# MongoDB configuration from environment variables
+app.config["MONGO_URI"] = (
+    f"mongodb://{os.getenv('MONGO_USER', 'admin')}:{os.getenv('MONGO_PASSWORD', 'adminpassword')}@"
+    f"{os.getenv('MONGO_HOST', 'mongodb')}:{os.getenv('MONGO_PORT', '27017')}/"
+    f"{os.getenv('MONGO_DB', 'app_db')}"
+)
+mongo = PyMongo(app)
+
+
+def get_notes_collection():
+    """Get the notes collection from MongoDB."""
+    return mongo.db.notes
 
 
 @app.route("/", methods=["GET"])
@@ -44,13 +45,6 @@ def get_notes():
     notes_col = get_notes_collection()
     notes = list(notes_col.find({}, {"_id": 0}))
     return jsonify(notes)
-
-
-# TODO: Implement remaining routes:
-# - POST /upload - Use app.storage.save_audio_to_gridfs()
-# - GET /notes/<id> - Get specific note
-# - GET /search - Search notes using regex
-# - POST /process/<id> - Trigger inline processing
 
 
 if __name__ == "__main__":
