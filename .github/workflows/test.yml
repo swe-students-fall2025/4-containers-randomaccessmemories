@@ -1,0 +1,48 @@
+name: tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        subdir: [web-app, machine-learning-client]
+    
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: adminpassword
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      
+      - name: Install dependencies
+        if: ${{ hashFiles(format('{0}/**/*.py', matrix.subdir)) != '' }}
+        run: |
+          cd ${{ matrix.subdir }}
+          python -m pip install --upgrade pip
+          python -m pip install pipenv
+          pipenv sync --dev --python $(which python)
+      
+      - name: Run tests with pytest
+        if: ${{ hashFiles(format('{0}/tests/**/*.py', matrix.subdir)) != '' }}
+        run: |
+          cd ${{ matrix.subdir }}
+          pipenv run pytest tests/ -v --cov=app
+        env:
+          MONGO_HOST: localhost
+          MONGO_PORT: 27017
+          MONGO_DB: audio_notes_test
+          MONGO_USER: admin
+          MONGO_PASSWORD: adminpassword

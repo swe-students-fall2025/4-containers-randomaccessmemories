@@ -58,3 +58,4 @@ docker-compose down
 
 - The default database and credentials are set for local development and testing. For production, update your `.env` file with secure values.
 - Make sure Docker and Docker Compose are installed on your system.
+
