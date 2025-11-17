@@ -1,34 +1,58 @@
-# env vars (MONGO_URI, OPENAI_*, PROCESS_INLINE)
-"""Configuration from environment variables."""
+"""Flask app for AI-assisted audio notes with PyMongo."""
+
+"""Flask app for AI-assisted audio notes."""
+import sys
 import os
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+
+# Add app directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "app"))
+
+from app.config import Config
+from app.db import get_notes_collection
+
+# Create Flask app
+app = Flask(__name__)
+app.config.from_object(Config)
+app.config["MAX_CONTENT_LENGTH"] = Config.MAX_FILE_MB * 1024 * 1024
+CORS(app)
 
 
-class Config:
-    """Application configuration."""
+@app.route("/", methods=["GET"])
+def index():
+    """Root endpoint to verify the app is running."""
+    return "Audio Note Web App is running!"
 
-    # MongoDB
-    MONGO_HOST = os.getenv("MONGO_HOST", "mongodb")
-    MONGO_PORT = int(os.getenv("MONGO_PORT", 27017))
-    MONGO_DB = os.getenv("MONGO_DB", "audio_notes")
-    MONGO_USER = os.getenv("MONGO_USER", "admin")
-    MONGO_PASSWORD = os.getenv("MONGO_PASSWORD", "adminpassword")
-    # provide both styles (URI directly or assembled parts)
-    MONGO_URI = os.getenv(
-        "MONGO_URI",
-        f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}?authSource=admin",
-    )
 
-    # OpenAI
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")  # optional (proxy/azure)
-    # model names split for speech vs text
-    OPENAI_TRANSCRIBE_MODEL = os.getenv("OPENAI_TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe")
-    OPENAI_TEXT_MODEL = os.getenv("OPENAI_TEXT_MODEL", "gpt-4o-mini")
+@app.route("/notes", methods=["POST"])
+def add_note():
+    """Add a new audio note with transcription and structured notes."""
+    data = request.get_json()
+    note = {
+        "audio_url": data.get("audio_url"),
+        "transcription": data.get("transcription"),
+        "structured_notes": data.get("structured_notes", {}),
+    }
+    notes_col = get_notes_collection()
+    result = notes_col.insert_one(note)
+    return jsonify({"inserted_id": str(result.inserted_id)}), 201
 
-    # Processing
-    PROCESS_INLINE = os.getenv("PROCESS_INLINE", "false").lower() == "true"
-    MAX_FILE_MB = int(os.getenv("MAX_FILE_MB", 10))
 
-    # Flask
-    SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
-    DEBUG = os.getenv("FLASK_DEBUG", "1") == "1"
+@app.route("/notes", methods=["GET"])
+def get_notes():
+    """Retrieve all audio notes."""
+    notes_col = get_notes_collection()
+    notes = list(notes_col.find({}, {"_id": 0}))
+    return jsonify(notes)
+
+
+# TODO: Implement remaining routes:
+# - POST /upload - Use app.storage.save_audio_to_gridfs()
+# - GET /notes/<id> - Get specific note
+# - GET /search - Search notes using regex
+# - POST /process/<id> - Trigger inline processing
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
