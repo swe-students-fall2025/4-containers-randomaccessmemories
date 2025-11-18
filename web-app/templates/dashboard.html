@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio Notes Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body>
+  <div class="app-shell">
+
+    <header class="app-header">
+      <h1 class="app-title">Audio Notes</h1>
+      <p class="app-subtitle">Recent recordings and their notes.</p>
+
+      <nav class="top-nav">
+        <a href="{{ url_for('dashboard') }}" class="nav-current">Dashboard</a>
+        <a href="{{ url_for('upload') }}">Upload / Record</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>Recordings</h2>
+
+        {% if recordings|length == 0 %}
+        <p class="detail-text mt-8">
+          No recordings yet. Once your team adds recordings, they will appear here.
+        </p>
+        {% else %}
+
+        <div class="dashboard-header">
+          <p>Showing {{ recordings|length }} recording(s).</p>
+        </div>
+
+        <table class="records-table">
+          <thead>
+            <tr>
+              <th>Recorded</th>
+              <th>Status</th>
+              <th>Summary</th>
+              <th>Keywords</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rec in recordings %}
+            <tr>
+              <td>{{ rec.created_at_display }}</td>
+              <td>
+                <span class="status-chip {{ rec.status-done }}">
+                  {{ rec.status_label }}
+                </span>
+              </td>
+              <td>{{ rec.summary_preview }}</td>
+              <td>{{ rec.keywords_display }}</td>
+              <td class="text-right">
+                <a class="btn btn-secondary" href="{{ rec.detail_url }}">
+                  View details
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </section>
+    </main>
+
+  </div>
+</body>
+
+</html>
