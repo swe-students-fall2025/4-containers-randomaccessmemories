@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio Notes – Recording Detail</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body>
+  <div class="app-shell">
+
+    <header class="app-header">
+      <h1 class="app-title">Audio Notes</h1>
+      <p class="app-subtitle">Full view of a single recording.</p>
+
+      <nav class="top-nav">
+        <a href="{{ url_for('dashboard') }}" class="nav-current">Dashboard</a>
+        <a href="{{ url_for('upload') }}">Upload / Record</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel">
+
+        <div style="display: flex; justify-content: space-between; gap: 8px; align-items: center;">
+          <div>
+            <h2>
+              Recording from
+              {{ recording.created_at.strftime("%Y-%m-%d %H:%M") }}
+            </h2>
+
+            <p class="detail-text" style="margin-top: 4px; font-size: 0.9rem; color:#6a7280;">
+              {% if recording.language %}
+              Language: {{ recording.language }}
+              {% endif %}
+            </p>
+          </div>
+
+          <div>
+            {% if recording.status == "done" %}
+            <span class="status-chip status-done">Done</span>
+            {% elif recording.status == "processing" %}
+            <span class="status-chip status-processing">Processing</span>
+            {% elif recording.status == "error" %}
+            <span class="status-chip status-error">Error</span>
+            {% else %}
+            <span class="status-chip status-pending">Pending</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mt-12">
+          <p style="font-weight: 500; margin-bottom: 6px;">Audio</p>
+          <audio controls class="audio-preview" style="width: 100%;">
+            <source src="{{ audio_url }}" type="audio/webm">
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+
+        <div class="mt-12">
+          <p style="font-weight: 500; margin-bottom: 4px;">Summary</p>
+          {% if note and note.summary %}
+          <p class="detail-text">{{ note.summary }}</p>
+          {% else %}
+          <p class="detail-text">No summary available yet.</p>
+          {% endif %}
+        </div>
+
+        <div class="mt-12">
+          <p style="font-weight: 500; margin-bottom: 4px;">Keywords</p>
+          {% if note and note.keywords %}
+          <p class="detail-text">{{ note.keywords | join(", ") }}</p>
+          {% else %}
+          <p class="detail-text">No keywords extracted.</p>
+          {% endif %}
+        </div>
+
+        <div class="mt-12">
+          <p style="font-weight: 500; margin-bottom: 4px;">Transcript</p>
+          {% if note and note.transcript %}
+          <p class="detail-text">{{ note.transcript }}</p>
+          {% else %}
+          <p class="detail-text">No transcript available.</p>
+          {% endif %}
+        </div>
+
+        <div class="mt-12">
+          <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            ← Back to dashboard
+          </a>
+        </div>
+
+      </section>
+    </main>
+
+  </div>
+</body>
+
+</html>
