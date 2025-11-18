@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Audio Notes Dashboard</title>
+  <title>Audio Notes – Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 
@@ -31,7 +31,7 @@
         </p>
         {% else %}
 
-        <div class="dashboard-header">
+        <div class="dashboard-header mt-8">
           <p>Showing {{ recordings|length }} recording(s).</p>
         </div>
 
@@ -48,16 +48,44 @@
           <tbody>
             {% for rec in recordings %}
             <tr>
-              <td>{{ rec.created_at_display }}</td>
               <td>
-                <span class="status-chip {{ rec.status-done }}">
-                  {{ rec.status_label }}
-                </span>
+                {% if rec.created_at %}
+                {{ rec.created_at.strftime("%Y-%m-%d %H:%M") }}
+                {% else %}
+                N/A
+                {% endif %}
               </td>
-              <td>{{ rec.summary_preview }}</td>
-              <td>{{ rec.keywords_display }}</td>
+
+              <td>
+                {% if rec.status == "done" %}
+                <span class="status-chip status-done">Done</span>
+                {% elif rec.status == "processing" %}
+                <span class="status-chip status-processing">Processing</span>
+                {% elif rec.status == "error" %}
+                <span class="status-chip status-error">Error</span>
+                {% else %}
+                <span class="status-chip status-pending">Pending</span>
+                {% endif %}
+              </td>
+
+              <td>
+                {% if rec.summary %}
+                {{ rec.summary }}
+                {% else %}
+                —
+                {% endif %}
+              </td>
+
+              <td>
+                {% if rec.keywords %}
+                {{ rec.keywords | join(", ") }}
+                {% else %}
+                —
+                {% endif %}
+              </td>
+
               <td class="text-right">
-                <a class="btn btn-secondary" href="{{ rec.detail_url }}">
+                <a class="btn btn-secondary" href="{{ url_for('recording_detail', recording_id=rec['_id']) }}">
                   View details
                 </a>
               </td>
