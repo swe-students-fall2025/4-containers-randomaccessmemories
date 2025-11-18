@@ -7,14 +7,15 @@ name = "pypi"
 flask = "*"
 pymongo = "*"
 flask-cors = "*"
-werkzeug = "*"
 python-dotenv = "*"
+openai = "*"
 
 [dev-packages]
 pytest = "*"
 pytest-cov = "*"
 black = "*"
 pylint = "*"
+pytest-flask = "*"
 
 [requires]
 python_version = "3.12"

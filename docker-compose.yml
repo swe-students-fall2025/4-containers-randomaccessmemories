@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   mongodb:
-    image: mongo:latest
+    image: mongo:7
     container_name: mongodb
     ports:
       - "27017:27017"
@@ -27,8 +25,9 @@ services:
     container_name: web-app
     env_file:
       - .env
+    # Map host 5050 -> container 5000 (configurable)
     ports:
-      - "5000:5000"
+      - "${WEB_PORT:-5050}:5000"
     depends_on:
       - mongodb
     volumes:
