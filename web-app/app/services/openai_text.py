@@ -1,4 +1,5 @@
 """OpenAI text processing service."""
+
 import json
 from flask import current_app
 from openai import OpenAI
@@ -33,8 +34,6 @@ def summarize_and_keywords(transcript: str) -> dict:
     data = json.loads(resp.choices[0].message.content)
     return {
         "summary": data.get("summary", ""),
-        "keywords": [
-            k.strip() for k in data.get("topics", "").split(",") if k.strip()
-        ],
+        "keywords": [k.strip() for k in data.get("topics", "").split(",") if k.strip()],
         "action_items": data.get("action_items", []),
     }

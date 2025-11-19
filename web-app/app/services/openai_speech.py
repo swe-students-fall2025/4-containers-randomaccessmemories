@@ -1,4 +1,5 @@
 """OpenAI speech transcription service."""
+
 import io
 from flask import current_app
 from openai import OpenAI

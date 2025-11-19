@@ -1,4 +1,5 @@
 """Entrypoint to run the Flask app."""
+
 from app import create_app
 from app.config import Config
 
