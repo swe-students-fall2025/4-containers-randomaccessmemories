@@ -99,7 +99,9 @@ def test_save_audio_file_too_large():
         save_audio_to_gridfs(large_file, "large.wav")
 
 
-def test_save_and_retrieve_audio(mock_audio_file):
+def test_save_and_retrieve_audio(
+    mock_audio_file,
+):  # pylint: disable=redefined-outer-name
     """Test saving and retrieving audio file."""
     from app.storage import (  # pylint: disable=import-outside-toplevel
         delete_audio_from_gridfs,

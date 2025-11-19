@@ -56,7 +56,9 @@ def sample_notes():
     Database.close()
 
 
-def test_search_in_transcript(sample_notes):  # pylint: disable=unused-argument
+def test_search_in_transcript(
+    sample_notes,
+):  # pylint: disable=unused-argument,redefined-outer-name
     """Test searching notes by transcript content."""
     notes_col = get_notes_collection()
 
@@ -70,7 +72,9 @@ def test_search_in_transcript(sample_notes):  # pylint: disable=unused-argument
     assert any("meeting" in note["transcript"].lower() for note in results)
 
 
-def test_search_in_keywords(sample_notes):  # pylint: disable=unused-argument
+def test_search_in_keywords(
+    sample_notes,
+):  # pylint: disable=unused-argument,redefined-outer-name
     """Test searching notes by keywords."""
     notes_col = get_notes_collection()
 
@@ -84,7 +88,9 @@ def test_search_in_keywords(sample_notes):  # pylint: disable=unused-argument
     assert any("hiring" in note["keywords"].lower() for note in results)
 
 
-def test_search_case_insensitive(sample_notes):  # pylint: disable=unused-argument
+def test_search_case_insensitive(
+    sample_notes,
+):  # pylint: disable=unused-argument,redefined-outer-name
     """Test that search is case insensitive."""
     notes_col = get_notes_collection()
 
@@ -105,7 +111,9 @@ def test_search_case_insensitive(sample_notes):  # pylint: disable=unused-argume
     assert len(results_upper) == len(results_lower)
 
 
-def test_search_multiple_fields(sample_notes):  # pylint: disable=unused-argument
+def test_search_multiple_fields(
+    sample_notes,
+):  # pylint: disable=unused-argument,redefined-outer-name
     """Test searching across multiple fields with OR."""
     notes_col = get_notes_collection()
 
@@ -127,7 +135,9 @@ def test_search_multiple_fields(sample_notes):  # pylint: disable=unused-argumen
     assert len(results) > 0
 
 
-def test_search_no_results(sample_notes):  # pylint: disable=unused-argument
+def test_search_no_results(
+    sample_notes,
+):  # pylint: disable=unused-argument,redefined-outer-name
     """Test search with no matching results."""
     notes_col = get_notes_collection()
 
@@ -140,7 +150,9 @@ def test_search_no_results(sample_notes):  # pylint: disable=unused-argument
     assert len(results) == 0
 
 
-def test_search_partial_match(sample_notes):  # pylint: disable=unused-argument
+def test_search_partial_match(
+    sample_notes,
+):  # pylint: disable=unused-argument,redefined-outer-name
     """Test search with partial word match."""
     notes_col = get_notes_collection()
 

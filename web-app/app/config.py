@@ -3,7 +3,7 @@
 import os
 
 
-class Config:
+class Config:  # pylint: disable=too-few-public-methods
     """Application configuration."""
 
     # MongoDB
