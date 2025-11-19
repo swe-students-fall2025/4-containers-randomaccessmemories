@@ -1,4 +1,5 @@
-![Lint-free](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/lint.yml/badge.svg)
+[![web-app lint](https://img.shields.io/github/actions/workflow/status/swe-students-fall2025/4-containers-randomaccessmemories/lint.yml?branch=main&label=web-app%20lint)](https://github.com/swe-students-fall2025/4-containers-randomaccessmemories/actions/workflows/lint.yml)
+[![machine-learning-client lint](https://img.shields.io/github/actions/workflow/status/swe-students-fall2025/4-containers-randomaccessmemories/lint.yml?branch=main&label=machine-learning-client%20lint)](https://github.com/swe-students-fall2025/4-containers-randomaccessmemories/actions/workflows/lint.yml)
 
 # Notely
 
