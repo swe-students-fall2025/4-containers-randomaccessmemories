@@ -1,6 +1,7 @@
 """Configuration from environment variables."""
 import os
 
+
 class Config:  # pylint: disable=too-few-public-methods
     """Application configuration."""
 
@@ -12,13 +13,13 @@ class Config:  # pylint: disable=too-few-public-methods
     MONGO_PASSWORD = os.getenv("MONGO_PASSWORD", "adminpassword")
     MONGO_URI = os.getenv(
         "MONGO_URI",
-        f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}?authSource=admin",
+        f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:"
+        f"{MONGO_PORT}/{MONGO_DB}?authSource=admin",
     )
 
     # OpenAI
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
     OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4")
-
     OPENAI_TRANSCRIBE_MODEL = os.getenv(
         "OPENAI_TRANSCRIBE_MODEL",
         os.getenv("OPENAI_MODEL", "gpt-4o-mini-transcribe"),
