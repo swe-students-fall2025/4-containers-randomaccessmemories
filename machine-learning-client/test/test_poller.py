@@ -23,7 +23,7 @@ def _prep_path_and_bson():
 def test_process_pending_success(monkeypatch):
     """Test successful processing of pending records."""
     _prep_path_and_bson()
-    import app.poller as poller  # pylint: disable=import-outside-toplevel
+    from app import poller  # pylint: disable=import-outside-toplevel
 
     # Setup a single pending record
     pending = [{"_id": "rid-1", "file_id": "fid-1"}]
@@ -91,7 +91,7 @@ def test_process_pending_success(monkeypatch):
 def test_process_pending_stt_failure_sets_error(monkeypatch):
     """Test that STT failure properly sets error status."""
     _prep_path_and_bson()
-    import app.poller as poller  # pylint: disable=import-outside-toplevel
+    from app import poller  # pylint: disable=import-outside-toplevel
 
     pending = [{"_id": "rid-err", "file_id": "fid-err"}]
     monkeypatch.setattr(poller.db, "find_pending", lambda limit=10: pending)

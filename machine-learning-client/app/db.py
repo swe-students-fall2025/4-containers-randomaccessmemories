@@ -45,7 +45,7 @@ def _get_mongo_uri() -> str:
 
 def get_client() -> MongoClient:
     """Return a cached MongoClient, creating one if necessary."""
-    global _client
+    global _client  # pylint: disable=global-statement
     if _client is None:
         uri = _get_mongo_uri()
         _client = MongoClient(uri)
@@ -54,7 +54,7 @@ def get_client() -> MongoClient:
 
 def get_db() -> Any:
     """Return the configured database instance."""
-    global _db
+    global _db  # pylint: disable=global-statement
     if _db is None:
         # pick DB name from URI or env
         dbname = os.getenv("MONGO_DB")
@@ -160,6 +160,7 @@ def insert_structured_note(
     return res.inserted_id
 
 
+# pylint: disable=too-many-arguments,too-many-positional-arguments
 def insert_note(
     recording_id: ObjectId | str,
     transcript: str,

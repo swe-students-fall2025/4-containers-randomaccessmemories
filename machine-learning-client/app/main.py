@@ -34,10 +34,12 @@ def _find_poller_callable() -> Optional[Callable[[], None]]:
     )
     try:
         # Prefer package-style import when running as a package
+        # pylint: disable=import-outside-toplevel
         from app import poller  # type: ignore
     except Exception:  # pylint: disable=broad-exception-caught
         try:
-            import poller  # type: ignore  # pylint: disable=import-error
+            # pylint: disable=import-outside-toplevel,import-error
+            import poller  # type: ignore
         except Exception:  # pylint: disable=broad-exception-caught
             logging.getLogger(__name__).warning(
                 "No poller module found (app.poller or poller)"

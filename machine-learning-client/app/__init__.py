@@ -1,11 +1,13 @@
 """Machine learning client application initialization."""
 
+# pylint: disable=wrong-import-position,pointless-string-statement
+
 from __future__ import annotations
 import os
 import logging
 from dataclasses import dataclass
 from typing import Optional, Dict, Any
-import requests
+import requests  # pylint: disable=import-error
 
 """
 machine-learning-client.app package initializer.

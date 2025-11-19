@@ -23,7 +23,8 @@ from typing import Any, Dict, Optional
 try:
     import openai
 except Exception:  # pragma: no cover - openai may not be installed in test env
-    openai = None  # pylint: disable=invalid-name
+    # pylint: disable=broad-exception-caught,invalid-name
+    openai = None
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,8 @@ def generate_structured_note(
     )
 
     try:
-        resp = openai.ChatCompletion.create(  # type: ignore  # pylint: disable=no-member
+        # pylint: disable=no-member
+        resp = openai.ChatCompletion.create(  # type: ignore
             model=model,
             messages=[
                 {"role": "system", "content": system_msg},

@@ -16,6 +16,7 @@ from typing import Any, Dict, Optional
 try:
     import openai
 except Exception:  # pragma: no cover - openai may not be installed in tests
+    # pylint: disable=broad-exception-caught,invalid-name
     openai = None
 
 logger = logging.getLogger(__name__)
@@ -30,13 +31,13 @@ def _ensure_api_key() -> None:
         logger.debug("OPENAI_API_KEY not set; OpenAI calls will likely fail")
     if openai and key:
         try:
-            openai.api_key = key
-        except Exception:
+            openai.api_key = key  # type: ignore
+        except Exception:  # pylint: disable=broad-exception-caught
             # newer client variants may use the environment or different config
             pass
 
 
-def _extract_text_from_resp(resp: Any) -> Optional[str]:
+def _extract_text_from_resp(resp: Any) -> Optional[str]:  # pylint: disable=too-many-return-statements
     """Pull the transcription text from a variety of response shapes."""
     try:
         if resp is None:
@@ -73,7 +74,7 @@ def _extract_text_from_resp(resp: Any) -> Optional[str]:
 
         # fallback to string
         return str(resp)
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         return None
 
 
@@ -98,27 +99,28 @@ def transcribe(
 
     try:
         # Preferred modern shape: openai.Audio.transcribe
+        # pylint: disable=no-member
         if hasattr(openai, "Audio") and hasattr(openai.Audio, "transcribe"):
-            resp = openai.Audio.transcribe(model=model, file=bio)
+            resp = openai.Audio.transcribe(model=model, file=bio)  # type: ignore
             text = _extract_text_from_resp(resp)
             return {"text": text} if text is not None else None
 
         # Some clients expose Speech.transcribe
         if hasattr(openai, "Speech") and hasattr(openai.Speech, "transcribe"):
-            resp = openai.Speech.transcribe(model=model, file=bio)
+            resp = openai.Speech.transcribe(model=model, file=bio)  # type: ignore
             text = _extract_text_from_resp(resp)
             return {"text": text} if text is not None else None
 
         # Older / alternate interface: openai.transcribe or top-level helper
         if hasattr(openai, "transcribe"):
-            resp = openai.transcribe(model=model, file=bio)
+            resp = openai.transcribe(model=model, file=bio)  # type: ignore
             text = _extract_text_from_resp(resp)
             return {"text": text} if text is not None else None
 
         logger.warning("No supported transcribe method found on openai client")
         return None
 
-    except Exception as exc:  # pragma: no cover - external API/network
+    except Exception as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
         logger.exception("OpenAI STT call failed: %s", exc)
         return None
 
