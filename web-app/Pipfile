@@ -18,4 +18,6 @@ pylint = "*"
 pytest-flask = "*"
 
 [requires]
-python_version = "3.12"
+# Compatible with Python 3.12 and above. Pipfile does not support range
+# specifiers like ">=3.12"; omitting a strict version allows Pipenv to use
+# the active interpreter (use a 3.12+ interpreter for lockfile parity).
