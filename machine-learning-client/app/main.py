@@ -66,9 +66,7 @@ def loop(interval: float = DEFAULT_INTERVAL, run_once: bool = False) -> int:
     logger = logging.getLogger(__name__)
     stop = False
 
-    def _signal_handler(
-        signum, frame  # pylint: disable=unused-argument
-    ):
+    def _signal_handler(signum, frame):  # pylint: disable=unused-argument
         nonlocal stop
         logger.info("Received signal %s, stopping after current iteration", signum)
         stop = True

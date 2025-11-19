@@ -39,7 +39,9 @@ def _ensure_api_key() -> None:
             pass
 
 
-def _extract_text_from_resp(resp: Any) -> Optional[str]:  # pylint: disable=too-many-return-statements
+def _extract_text_from_resp(
+    resp: Any,
+) -> Optional[str]:  # pylint: disable=too-many-return-statements
     """Pull the transcription text from a variety of response shapes."""
     try:
         if resp is None:
@@ -122,7 +124,9 @@ def transcribe(
         logger.warning("No supported transcribe method found on openai client")
         return None
 
-    except Exception as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
+    except (
+        Exception
+    ) as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
         logger.exception("OpenAI STT call failed: %s", exc)
         return None
 

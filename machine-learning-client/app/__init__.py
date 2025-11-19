@@ -46,7 +46,7 @@ DEFAULT_CONFIG = Config(
 )
 
 
-class MachineLearningClient: # pylint: disable=too-few-public-methods
+class MachineLearningClient:  # pylint: disable=too-few-public-methods
     """
     Minimal client for interacting with a machine learning model server.
 
@@ -64,9 +64,7 @@ class MachineLearningClient: # pylint: disable=too-few-public-methods
             self.session.headers.update(
                 {"Authorization": f"Bearer {self.config.api_key}"}
             )
-        logger.debug(
-            "Initialized MachineLearningClient with host=%s", self.config.host
-        )
+        logger.debug("Initialized MachineLearningClient with host=%s", self.config.host)
 
     def _url(self, path: str) -> str:
         return f"{self.config.host.rstrip('/')}/{path.lstrip('/')}"

@@ -80,9 +80,7 @@ def generate_structured_note(
     _ensure_api_key()
 
     if openai is None:
-        logger.warning(
-            "openai package not available; cannot generate structured note"
-        )
+        logger.warning("openai package not available; cannot generate structured note")
         return None
 
     model = model or DEFAULT_MODEL
@@ -101,9 +99,7 @@ def generate_structured_note(
     )
 
     user_msg = (
-        "Transcript:\n"
-        + transcript
-        + "\n\n"
+        "Transcript:\n" + transcript + "\n\n"
         "Return ONLY valid JSON. Example shape:\n"
         '{\n  "summary": "...",\n  "highlights": ["..."],\n  '
         '"keywords": ["..."],\n  "action_items": [{"assignee": null, '
@@ -156,9 +152,7 @@ def generate_structured_note(
                 try:
                     return json.loads(jtxt)
                 except Exception:  # pylint: disable=broad-exception-caught
-                    logger.exception(
-                        "Failed to parse extracted JSON from model output"
-                    )
+                    logger.exception("Failed to parse extracted JSON from model output")
 
         logger.exception(
             "Model did not return parseable JSON; returning raw text summary"
@@ -171,7 +165,9 @@ def generate_structured_note(
             "action_items": [],
         }
 
-    except Exception as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
+    except (
+        Exception
+    ) as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
         logger.exception("OpenAI ChatCompletion call failed: %s", exc)
         return None
 

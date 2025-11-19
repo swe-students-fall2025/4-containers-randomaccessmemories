@@ -33,7 +33,9 @@ def _safe_transcribe(audio_bytes: bytes) -> Optional[Dict[str, Any]]:
         if isinstance(text, dict):
             return text
         return {"text": text}
-    except Exception as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
+    except (
+        Exception
+    ) as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
         logger.exception("STT failed: %s", exc)
         return None
 
@@ -45,7 +47,9 @@ def _safe_generate_notes(transcript: str) -> Optional[Dict[str, Any]]:
 
         note = nlp.generate_structured_note(transcript)
         return note
-    except Exception as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
+    except (
+        Exception
+    ) as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
         logger.exception("NLP generation failed: %s", exc)
         return None
 
