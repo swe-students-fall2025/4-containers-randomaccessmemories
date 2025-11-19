@@ -1,5 +1,5 @@
-# env vars (MONGO_URI, OPENAI_*, PROCESS_INLINE)
 """Configuration from environment variables."""
+
 import os
 
 

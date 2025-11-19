@@ -11,10 +11,12 @@ Return strict JSON with keys: summary, topics, action_items.
 Transcript:
 \"\"\"{t}\"\"\""""
 
+
 def _client() -> OpenAI:
     key = current_app.config["OPENAI_API_KEY"]
     base = current_app.config.get("OPENAI_BASE_URL")
     return OpenAI(api_key=key, base_url=base) if base else OpenAI(api_key=key)
+
 
 def summarize_and_keywords(transcript: str) -> dict:
     model = current_app.config["OPENAI_TEXT_MODEL"]

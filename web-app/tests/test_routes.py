@@ -1,9 +1,10 @@
 """Tests for storage and database functionality."""
 
-import pytest
-from io import BytesIO
 import sys
 import os
+from io import BytesIO
+
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))

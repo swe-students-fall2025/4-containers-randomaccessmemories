@@ -1,5 +1,5 @@
-# pymongo + GridFS wiring
 """PyMongo and GridFS connection utilities."""
+
 from pymongo import MongoClient
 from gridfs import GridFS
 from .config import Config

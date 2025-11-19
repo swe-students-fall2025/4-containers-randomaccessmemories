@@ -1,9 +1,10 @@
 """Tests for search functionality on notes collection."""
 
-import pytest
-from datetime import datetime
 import sys
 import os
+from datetime import datetime
+
+import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 

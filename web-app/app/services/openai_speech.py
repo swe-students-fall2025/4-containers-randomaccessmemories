@@ -2,10 +2,12 @@ import io
 from flask import current_app
 from openai import OpenAI
 
+
 def _client() -> OpenAI:
     key = current_app.config["OPENAI_API_KEY"]
     base = current_app.config.get("OPENAI_BASE_URL")
     return OpenAI(api_key=key, base_url=base) if base else OpenAI(api_key=key)
+
 
 def transcribe_audio_bytes(audio_bytes: bytes, filename: str = "audio.webm") -> dict:
     """
@@ -17,4 +19,7 @@ def transcribe_audio_bytes(audio_bytes: bytes, filename: str = "audio.webm") -> 
     f = io.BytesIO(audio_bytes)
     f.name = filename
     res = client.audio.transcriptions.create(model=model, file=f)
-    return {"text": getattr(res, "text", ""), "language": getattr(res, "language", None)}
+    return {
+        "text": getattr(res, "text", ""),
+        "language": getattr(res, "language", None),
+    }
