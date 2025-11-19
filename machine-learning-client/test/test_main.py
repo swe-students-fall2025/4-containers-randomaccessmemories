@@ -41,7 +41,11 @@ def test_loop_returns_2_when_no_poller(monkeypatch):
     import app.main as main
 
     # prevent test from changing signal handlers
-    monkeypatch.setattr(main, "signal", types.SimpleNamespace(signal=lambda *a, **k: None, SIGINT=None, SIGTERM=None))
+    monkeypatch.setattr(
+        main,
+        "signal",
+        types.SimpleNamespace(signal=lambda *a, **k: None, SIGINT=None, SIGTERM=None),
+    )
 
     monkeypatch.setattr(main, "_find_poller_callable", lambda: None)
     rc = main.loop(run_once=True)
@@ -57,7 +61,11 @@ def test_loop_run_once_invokes_poller_once(monkeypatch):
     def fake_poller():
         calls["count"] += 1
 
-    monkeypatch.setattr(main, "signal", types.SimpleNamespace(signal=lambda *a, **k: None, SIGINT=None, SIGTERM=None))
+    monkeypatch.setattr(
+        main,
+        "signal",
+        types.SimpleNamespace(signal=lambda *a, **k: None, SIGINT=None, SIGTERM=None),
+    )
     monkeypatch.setattr(main, "_find_poller_callable", lambda: fake_poller)
 
     rc = main.loop(run_once=True)
@@ -72,7 +80,11 @@ def test_loop_handles_poller_exception_gracefully(monkeypatch):
     def bad_poller():
         raise RuntimeError("boom")
 
-    monkeypatch.setattr(main, "signal", types.SimpleNamespace(signal=lambda *a, **k: None, SIGINT=None, SIGTERM=None))
+    monkeypatch.setattr(
+        main,
+        "signal",
+        types.SimpleNamespace(signal=lambda *a, **k: None, SIGINT=None, SIGTERM=None),
+    )
     monkeypatch.setattr(main, "_find_poller_callable", lambda: bad_poller)
 
     # Should not raise

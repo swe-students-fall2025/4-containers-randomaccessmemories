@@ -16,26 +16,31 @@ and a factory to create a client with sensible defaults.
 __version__ = "0.1.0"
 
 
-
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
+
 
 @dataclass(frozen=True)
 class Config:
     """Configuration for MachineLearningClient."""
+
     host: str = "http://localhost:8000"
     api_key: Optional[str] = None
     timeout: float = 10.0
     verify_ssl: bool = True
     user_agent: str = f"machine-learning-client/{__version__}"
 
+
 # default config constructed from environment variables when available
 DEFAULT_CONFIG = Config(
     host=os.getenv("ML_CLIENT_HOST", "http://localhost:8000"),
     api_key=os.getenv("ML_CLIENT_API_KEY"),
     timeout=float(os.getenv("ML_CLIENT_TIMEOUT", "10.0")),
-    verify_ssl=(os.getenv("ML_CLIENT_VERIFY_SSL", "true").lower() not in ("0", "false")),
+    verify_ssl=(
+        os.getenv("ML_CLIENT_VERIFY_SSL", "true").lower() not in ("0", "false")
+    ),
 )
+
 
 class MachineLearningClient:
     """
@@ -52,13 +57,17 @@ class MachineLearningClient:
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": self.config.user_agent})
         if self.config.api_key:
-            self.session.headers.update({"Authorization": f"Bearer {self.config.api_key}"})
+            self.session.headers.update(
+                {"Authorization": f"Bearer {self.config.api_key}"}
+            )
         logger.debug("Initialized MachineLearningClient with host=%s", self.config.host)
 
     def _url(self, path: str) -> str:
         return f"{self.config.host.rstrip('/')}/{path.lstrip('/')}"
 
-    def predict(self, payload: Dict[str, Any], endpoint: str = "/predict") -> Dict[str, Any]:
+    def predict(
+        self, payload: Dict[str, Any], endpoint: str = "/predict"
+    ) -> Dict[str, Any]:
         """
         Send a prediction request to the model server.
 
@@ -76,7 +85,12 @@ class MachineLearningClient:
         """
         url = self._url(endpoint)
         logger.debug("Sending predict request to %s with payload=%s", url, payload)
-        resp = self.session.post(url, json=payload, timeout=self.config.timeout, verify=self.config.verify_ssl)
+        resp = self.session.post(
+            url,
+            json=payload,
+            timeout=self.config.timeout,
+            verify=self.config.verify_ssl,
+        )
         try:
             resp.raise_for_status()
         except requests.HTTPError:
@@ -88,9 +102,11 @@ class MachineLearningClient:
             logger.error("Invalid JSON response from %s: %s", url, resp.text)
             raise
 
+
 def create_client(config: Optional[Config] = None) -> MachineLearningClient:
     """Factory to create a MachineLearningClient with the given config or defaults."""
     return MachineLearningClient(config)
+
 
 # package exports
 __all__ = [

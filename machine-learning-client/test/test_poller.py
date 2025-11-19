@@ -52,14 +52,29 @@ def test_process_pending_success(monkeypatch):
     monkeypatch.setattr(poller.db, "set_record_error", set_error)
 
     # Replace provider wrappers to return predictable values
-    monkeypatch.setattr(poller, "_safe_transcribe", lambda audio: {"text": "hello world", "confidence": 0.9})
-    monkeypatch.setattr(poller, "_safe_generate_notes", lambda text: {"summary": "s", "highlights": [], "keywords": [], "action_items": []})
+    monkeypatch.setattr(
+        poller,
+        "_safe_transcribe",
+        lambda audio: {"text": "hello world", "confidence": 0.9},
+    )
+    monkeypatch.setattr(
+        poller,
+        "_safe_generate_notes",
+        lambda text: {
+            "summary": "s",
+            "highlights": [],
+            "keywords": [],
+            "action_items": [],
+        },
+    )
 
     processed = poller.process_pending(limit=1)
 
     assert processed == 1
     # status should include processing and done
-    assert any(s == "processing" for _, s in calls["status"]) and any(s == "done" for _, s in calls["status"])
+    assert any(s == "processing" for _, s in calls["status"]) and any(
+        s == "done" for _, s in calls["status"]
+    )
     assert calls["transcriptions"] and calls["notes"]
     assert not calls["errors"]
 

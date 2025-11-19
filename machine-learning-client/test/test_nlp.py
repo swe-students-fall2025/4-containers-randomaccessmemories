@@ -16,12 +16,14 @@ def test_generate_structured_note_parses_json(monkeypatch):
     import app.nlp_openai as nlp
 
     # Create a fake openai client that returns a content string containing JSON
-    fake_content = json.dumps({
-        "summary": "This is a short summary.",
-        "highlights": ["point a", "point b"],
-        "keywords": ["kw1", "kw2"],
-        "action_items": [{"assignee": None, "action": "do X", "due": None}],
-    })
+    fake_content = json.dumps(
+        {
+            "summary": "This is a short summary.",
+            "highlights": ["point a", "point b"],
+            "keywords": ["kw1", "kw2"],
+            "action_items": [{"assignee": None, "action": "do X", "due": None}],
+        }
+    )
 
     # Build the fake response object shape used by our implementation
     fake_resp = {"choices": [{"message": {"content": fake_content}}]}
@@ -63,4 +65,6 @@ def test_generate_structured_note_fallback_on_nonjson(monkeypatch):
     assert isinstance(result, dict)
     assert "summary" in result
     assert result["summary"] and isinstance(result["summary"], str)
+
+
 # mocks DB + STT/NLP to hit 80% coverage

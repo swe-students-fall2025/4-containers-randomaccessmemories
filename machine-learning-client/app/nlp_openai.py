@@ -21,9 +21,9 @@ import re
 from typing import Any, Dict, List, Optional
 
 try:
-	import openai
+    import openai
 except Exception:  # pragma: no cover - openai may not be installed in test env
-	openai = None
+    openai = None
 
 logger = logging.getLogger(__name__)
 
@@ -33,116 +33,132 @@ DEFAULT_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "1024"))
 
 
 def _ensure_api_key() -> None:
-	key = os.getenv("OPENAI_API_KEY")
-	if not key:
-		logger.debug("OPENAI_API_KEY not set; OpenAI calls will likely fail")
-	if openai and key:
-		# the old openai package uses `openai.api_key`
-		try:
-			openai.api_key = key
-		except Exception:
-			# newer/openai client variants may use a different config; ignore here
-			pass
+    key = os.getenv("OPENAI_API_KEY")
+    if not key:
+        logger.debug("OPENAI_API_KEY not set; OpenAI calls will likely fail")
+    if openai and key:
+        # the old openai package uses `openai.api_key`
+        try:
+            openai.api_key = key
+        except Exception:
+            # newer/openai client variants may use a different config; ignore here
+            pass
 
 
 def _extract_json(text: str) -> Optional[str]:
-	"""Attempt to extract a JSON object from `text`.
+    """Attempt to extract a JSON object from `text`.
 
-	Returns the JSON substring if found, otherwise None.
-	"""
-	# First, try to find a top-level JSON object
-	m = re.search(r"\{[\s\S]*\}\s*$", text)
-	if m:
-		return m.group(0)
+    Returns the JSON substring if found, otherwise None.
+    """
+    # First, try to find a top-level JSON object
+    m = re.search(r"\{[\s\S]*\}\s*$", text)
+    if m:
+        return m.group(0)
 
-	# Try to find the first {...} pair anywhere in text
-	m = re.search(r"(\{[\s\S]*?\})", text)
-	if m:
-		return m.group(1)
+    # Try to find the first {...} pair anywhere in text
+    m = re.search(r"(\{[\s\S]*?\})", text)
+    if m:
+        return m.group(1)
 
-	return None
+    return None
 
 
-def generate_structured_note(transcript: str, *, model: Optional[str] = None, max_tokens: Optional[int] = None) -> Optional[Dict[str, Any]]:
-	"""Generate a structured note (summary, highlights, keywords, actions).
+def generate_structured_note(
+    transcript: str, *, model: Optional[str] = None, max_tokens: Optional[int] = None
+) -> Optional[Dict[str, Any]]:
+    """Generate a structured note (summary, highlights, keywords, actions).
 
-	- `transcript`: the raw text to summarize
-	- `model`: optional model override (env `OPENAI_MODEL` used if omitted)
-	- `max_tokens`: optional max tokens for the reply
+    - `transcript`: the raw text to summarize
+    - `model`: optional model override (env `OPENAI_MODEL` used if omitted)
+    - `max_tokens`: optional max tokens for the reply
 
-	Returns a dict on success or `None` on failure.
-	"""
-	_ensure_api_key()
+    Returns a dict on success or `None` on failure.
+    """
+    _ensure_api_key()
 
-	if openai is None:
-		logger.warning("openai package not available; cannot generate structured note")
-		return None
+    if openai is None:
+        logger.warning("openai package not available; cannot generate structured note")
+        return None
 
-	model = model or DEFAULT_MODEL
-	max_tokens = max_tokens or DEFAULT_MAX_TOKENS
+    model = model or DEFAULT_MODEL
+    max_tokens = max_tokens or DEFAULT_MAX_TOKENS
 
-	system_msg = (
-		"You are a helpful assistant that converts meeting transcripts into a compact, machine-readable JSON structured note. "
-		"Respond with only valid JSON containing the keys: summary, highlights, keywords, action_items. "
-		"- summary: 1-3 sentence summary string. "
-		"- highlights: array of important bullet points (strings). "
-		"- keywords: array of short keyword strings. "
-		"- action_items: array of objects with fields {assignee, action, due} (use null when unknown)."
-	)
+    system_msg = (
+        "You are a helpful assistant that converts meeting transcripts into a compact, machine-readable JSON structured note. "
+        "Respond with only valid JSON containing the keys: summary, highlights, keywords, action_items. "
+        "- summary: 1-3 sentence summary string. "
+        "- highlights: array of important bullet points (strings). "
+        "- keywords: array of short keyword strings. "
+        "- action_items: array of objects with fields {assignee, action, due} (use null when unknown)."
+    )
 
-	user_msg = (
-		"Transcript:\n" + transcript + "\n\n"
-		"Return ONLY valid JSON. Example shape:\n"
-		"{\n  \"summary\": \"...\",\n  \"highlights\": [\"...\"],\n  \"keywords\": [\"...\"],\n  \"action_items\": [{\"assignee\": null, \"action\": \"...\", \"due\": null}]\n}\n"
-	)
+    user_msg = (
+        "Transcript:\n" + transcript + "\n\n"
+        "Return ONLY valid JSON. Example shape:\n"
+        '{\n  "summary": "...",\n  "highlights": ["..."],\n  "keywords": ["..."],\n  "action_items": [{"assignee": null, "action": "...", "due": null}]\n}\n'
+    )
 
-	try:
-		resp = openai.ChatCompletion.create(
-			model=model,
-			messages=[{"role": "system", "content": system_msg}, {"role": "user", "content": user_msg}],
-			temperature=0.0,
-			max_tokens=max_tokens,
-			n=1,
-		)
+    try:
+        resp = openai.ChatCompletion.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": user_msg},
+            ],
+            temperature=0.0,
+            max_tokens=max_tokens,
+            n=1,
+        )
 
-		# Response shape differs between client versions; handle common shapes.
-		content = None
-		if hasattr(resp, "choices"):
-			choice = resp.choices[0]
-			# Some clients provide .message['content']
-			if hasattr(choice, "message") and isinstance(choice.message, dict):
-				content = choice.message.get("content")
-			else:
-				# Fallback: .text or .get
-				content = getattr(choice, "text", None) or choice.get("text") if isinstance(choice, dict) else None
+        # Response shape differs between client versions; handle common shapes.
+        content = None
+        if hasattr(resp, "choices"):
+            choice = resp.choices[0]
+            # Some clients provide .message['content']
+            if hasattr(choice, "message") and isinstance(choice.message, dict):
+                content = choice.message.get("content")
+            else:
+                # Fallback: .text or .get
+                content = (
+                    getattr(choice, "text", None) or choice.get("text")
+                    if isinstance(choice, dict)
+                    else None
+                )
 
-		if content is None:
-			# Try mapping as dict-like
-			try:
-				content = resp["choices"][0]["message"]["content"]
-			except Exception:
-				content = str(resp)
+        if content is None:
+            # Try mapping as dict-like
+            try:
+                content = resp["choices"][0]["message"]["content"]
+            except Exception:
+                content = str(resp)
 
-		# Try direct JSON parse
-		try:
-			obj = json.loads(content)
-			return obj
-		except Exception:
-			# Attempt to extract JSON substring and parse
-			jtxt = _extract_json(content or "")
-			if jtxt:
-				try:
-					return json.loads(jtxt)
-				except Exception:
-					logger.exception("Failed to parse extracted JSON from model output")
+        # Try direct JSON parse
+        try:
+            obj = json.loads(content)
+            return obj
+        except Exception:
+            # Attempt to extract JSON substring and parse
+            jtxt = _extract_json(content or "")
+            if jtxt:
+                try:
+                    return json.loads(jtxt)
+                except Exception:
+                    logger.exception("Failed to parse extracted JSON from model output")
 
-		logger.exception("Model did not return parseable JSON; returning raw text summary")
-		# As a graceful fallback, return the content under `summary` key
-		return {"summary": (content or "").strip(), "highlights": [], "keywords": [], "action_items": []}
+        logger.exception(
+            "Model did not return parseable JSON; returning raw text summary"
+        )
+        # As a graceful fallback, return the content under `summary` key
+        return {
+            "summary": (content or "").strip(),
+            "highlights": [],
+            "keywords": [],
+            "action_items": [],
+        }
 
-	except Exception as exc:  # pragma: no cover - provider/network failures
-		logger.exception("OpenAI ChatCompletion call failed: %s", exc)
-		return None
+    except Exception as exc:  # pragma: no cover - provider/network failures
+        logger.exception("OpenAI ChatCompletion call failed: %s", exc)
+        return None
 
 
 __all__ = ["generate_structured_note"]
