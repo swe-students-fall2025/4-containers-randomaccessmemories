@@ -27,15 +27,13 @@ def _safe_transcribe(audio_bytes: bytes) -> Optional[Dict[str, Any]]:
     be mocked or replaced during testing.
     """
     try:
-        from . import stt_openai as stt  # type: ignore
+        from . import stt_openai as stt  # type: ignore  # pylint: disable=import-outside-toplevel
 
         text = stt.transcribe(audio_bytes)
         if isinstance(text, dict):
             return text
         return {"text": text}
-    except (
-        Exception
-    ) as exc:  # pragma: no cover - provider call can be environment-specific
+    except Exception as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
         logger.exception("STT failed: %s", exc)
         return None
 
@@ -43,11 +41,11 @@ def _safe_transcribe(audio_bytes: bytes) -> Optional[Dict[str, Any]]:
 def _safe_generate_notes(transcript: str) -> Optional[Dict[str, Any]]:
     """Call NLP provider to generate structured notes from transcript."""
     try:
-        from . import nlp_openai as nlp  # type: ignore
+        from . import nlp_openai as nlp  # type: ignore  # pylint: disable=import-outside-toplevel
 
         note = nlp.generate_structured_note(transcript)
         return note
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
         logger.exception("NLP generation failed: %s", exc)
         return None
 
@@ -88,8 +86,8 @@ def process_pending(limit: int = 10) -> int:
             if note:
                 db.insert_structured_note(transcription_id, note)
 
-            # Insert a `notes` document compatible with the web-app schema so
-            # the web UI can read summaries/keywords/action items directly.
+            # Insert a `notes` document compatible with the web-app schema
+            # so the web UI can read summaries/keywords/action items directly.
             try:
                 summary = note.get("summary") if note else ""
                 # prefer an explicit keywords field, otherwise try highlights
@@ -100,7 +98,8 @@ def process_pending(limit: int = 10) -> int:
                 )
                 action_items = note.get("action_items") if note else []
                 transcript_text = stt_result.get("text")
-                # if the original record used 'file_id', mirror it to audio_gridfs_id for web-app compatibility
+                # if the original record used 'file_id', mirror it to
+                # audio_gridfs_id for web-app compatibility
                 file_id = doc.get("file_id") or doc.get("audio_gridfs_id")
                 db.insert_note(
                     rid,
@@ -118,20 +117,21 @@ def process_pending(limit: int = 10) -> int:
                             "language": stt_result.get("language"),
                         },
                     )
-            except Exception:
+            except Exception:  # pylint: disable=broad-exception-caught
                 logger.exception(
-                    "Failed to write web-app-compatible notes document for %s", rid
+                    "Failed to write web-app-compatible notes document for %s",
+                    rid,
                 )
 
             db.mark_record_status(rid, "done")
             processed += 1
             logger.info("Record %s processed successfully", rid)
 
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-exception-caught
             logger.exception("Failed to process record %s: %s", rid, exc)
             try:
                 db.set_record_error(rid, str(exc))
-            except Exception:
+            except Exception:  # pylint: disable=broad-exception-caught
                 logger.exception("Failed to set error status for record %s", rid)
 
     return processed

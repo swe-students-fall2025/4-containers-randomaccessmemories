@@ -1,3 +1,5 @@
+"""Machine learning client application initialization."""
+
 from __future__ import annotations
 import os
 import logging
@@ -21,7 +23,7 @@ logger.addHandler(logging.NullHandler())
 
 
 @dataclass(frozen=True)
-class Config:
+class Config:  # pylint: disable=too-few-public-methods
     """Configuration for MachineLearningClient."""
 
     host: str = "http://localhost:8000"
@@ -60,7 +62,9 @@ class MachineLearningClient:
             self.session.headers.update(
                 {"Authorization": f"Bearer {self.config.api_key}"}
             )
-        logger.debug("Initialized MachineLearningClient with host=%s", self.config.host)
+        logger.debug(
+            "Initialized MachineLearningClient with host=%s", self.config.host
+        )
 
     def _url(self, path: str) -> str:
         return f"{self.config.host.rstrip('/')}/{path.lstrip('/')}"
@@ -98,7 +102,7 @@ class MachineLearningClient:
             raise
         try:
             return resp.json()
-        except ValueError as exc:
+        except ValueError as exc:  # pylint: disable=unused-variable
             logger.error("Invalid JSON response from %s: %s", url, resp.text)
             raise
 

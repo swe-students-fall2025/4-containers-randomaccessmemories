@@ -18,12 +18,12 @@ import json
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 try:
     import openai
 except Exception:  # pragma: no cover - openai may not be installed in test env
-    openai = None
+    openai = None  # pylint: disable=invalid-name
 
 logger = logging.getLogger(__name__)
 
@@ -39,9 +39,9 @@ def _ensure_api_key() -> None:
     if openai and key:
         # the old openai package uses `openai.api_key`
         try:
-            openai.api_key = key
-        except Exception:
-            # newer/openai client variants may use a different config; ignore here
+            openai.api_key = key  # type: ignore
+        except Exception:  # pylint: disable=broad-exception-caught
+            # newer/openai client variants may use a different config
             pass
 
 
@@ -77,29 +77,38 @@ def generate_structured_note(
     _ensure_api_key()
 
     if openai is None:
-        logger.warning("openai package not available; cannot generate structured note")
+        logger.warning(
+            "openai package not available; cannot generate structured note"
+        )
         return None
 
     model = model or DEFAULT_MODEL
     max_tokens = max_tokens or DEFAULT_MAX_TOKENS
 
     system_msg = (
-        "You are a helpful assistant that converts meeting transcripts into a compact, machine-readable JSON structured note. "
-        "Respond with only valid JSON containing the keys: summary, highlights, keywords, action_items. "
+        "You are a helpful assistant that converts meeting transcripts "
+        "into a compact, machine-readable JSON structured note. "
+        "Respond with only valid JSON containing the keys: "
+        "summary, highlights, keywords, action_items. "
         "- summary: 1-3 sentence summary string. "
         "- highlights: array of important bullet points (strings). "
         "- keywords: array of short keyword strings. "
-        "- action_items: array of objects with fields {assignee, action, due} (use null when unknown)."
+        "- action_items: array of objects with fields {assignee, action, due} "
+        "(use null when unknown)."
     )
 
     user_msg = (
-        "Transcript:\n" + transcript + "\n\n"
+        "Transcript:\n"
+        + transcript
+        + "\n\n"
         "Return ONLY valid JSON. Example shape:\n"
-        '{\n  "summary": "...",\n  "highlights": ["..."],\n  "keywords": ["..."],\n  "action_items": [{"assignee": null, "action": "...", "due": null}]\n}\n'
+        '{\n  "summary": "...",\n  "highlights": ["..."],\n  '
+        '"keywords": ["..."],\n  "action_items": [{"assignee": null, '
+        '"action": "...", "due": null}]\n}\n'
     )
 
     try:
-        resp = openai.ChatCompletion.create(
+        resp = openai.ChatCompletion.create(  # type: ignore  # pylint: disable=no-member
             model=model,
             messages=[
                 {"role": "system", "content": system_msg},
@@ -129,21 +138,23 @@ def generate_structured_note(
             # Try mapping as dict-like
             try:
                 content = resp["choices"][0]["message"]["content"]
-            except Exception:
+            except Exception:  # pylint: disable=broad-exception-caught
                 content = str(resp)
 
         # Try direct JSON parse
         try:
             obj = json.loads(content)
             return obj
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             # Attempt to extract JSON substring and parse
             jtxt = _extract_json(content or "")
             if jtxt:
                 try:
                     return json.loads(jtxt)
-                except Exception:
-                    logger.exception("Failed to parse extracted JSON from model output")
+                except Exception:  # pylint: disable=broad-exception-caught
+                    logger.exception(
+                        "Failed to parse extracted JSON from model output"
+                    )
 
         logger.exception(
             "Model did not return parseable JSON; returning raw text summary"
@@ -156,7 +167,7 @@ def generate_structured_note(
             "action_items": [],
         }
 
-    except Exception as exc:  # pragma: no cover - provider/network failures
+    except Exception as exc:  # pragma: no cover  # pylint: disable=broad-exception-caught
         logger.exception("OpenAI ChatCompletion call failed: %s", exc)
         return None
 

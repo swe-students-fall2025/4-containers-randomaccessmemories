@@ -35,10 +35,10 @@ def _find_poller_callable() -> Optional[Callable[[], None]]:
     try:
         # Prefer package-style import when running as a package
         from app import poller  # type: ignore
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         try:
-            import poller  # type: ignore
-        except Exception:
+            import poller  # type: ignore  # pylint: disable=import-error
+        except Exception:  # pylint: disable=broad-exception-caught
             logging.getLogger(__name__).warning(
                 "No poller module found (app.poller or poller)"
             )
@@ -64,7 +64,9 @@ def loop(interval: float = DEFAULT_INTERVAL, run_once: bool = False) -> int:
     logger = logging.getLogger(__name__)
     stop = False
 
-    def _signal_handler(signum, frame):
+    def _signal_handler(
+        signum, frame  # pylint: disable=unused-argument
+    ):
         nonlocal stop
         logger.info("Received signal %s, stopping after current iteration", signum)
         stop = True
@@ -84,7 +86,7 @@ def loop(interval: float = DEFAULT_INTERVAL, run_once: bool = False) -> int:
             logger.info("Poller iteration %d starting", iteration)
             try:
                 poller_func()
-            except Exception as exc:  # pylint: disable=broad-except
+            except Exception as exc:  # pylint: disable=broad-exception-caught
                 logger.exception("Poller iteration failed: %s", exc)
 
             if run_once:
@@ -105,6 +107,7 @@ def loop(interval: float = DEFAULT_INTERVAL, run_once: bool = False) -> int:
 
 
 def _parse_args() -> argparse.Namespace:
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Machine learning client runner")
     parser.add_argument(
         "--once", action="store_true", help="Run a single poll iteration and exit"
@@ -124,6 +127,7 @@ def _parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    """Main entry point for the application."""
     args = _parse_args()
     logging.basicConfig(
         level=getattr(logging, args.log_level.upper(), logging.INFO),
