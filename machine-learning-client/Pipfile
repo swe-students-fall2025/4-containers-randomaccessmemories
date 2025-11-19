@@ -4,10 +4,25 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+# runtime
+pymongo = "*"
+openai = "*"
+pydub = "*"
+python-dotenv = "*"
+
+# dev / linting kept available in the image for debugging
 pylint = "*"
 black = "*"
 
 [dev-packages]
+# testing
+pytest = "*"
+pytest-mock = "*"
+pytest-cov = "*"
+coverage = "*"
 
 [requires]
-python_version = "3.12"
+# Compatible with Python 3.12 and above. Pipfile does not support range
+# specifiers like ">=3.12"; omitting a strict version allows Pipenv to use
+# the active interpreter (use a 3.12+ interpreter for lockfile parity).
+
