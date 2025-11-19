@@ -1,5 +1,5 @@
-# save file to GridFS, size checks
 """GridFS file storage with validation."""
+
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from bson import ObjectId
