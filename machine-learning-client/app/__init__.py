@@ -46,7 +46,7 @@ DEFAULT_CONFIG = Config(
 )
 
 
-class MachineLearningClient:
+class MachineLearningClient: # pylint: disable=too-few-public-methods
     """
     Minimal client for interacting with a machine learning model server.
 

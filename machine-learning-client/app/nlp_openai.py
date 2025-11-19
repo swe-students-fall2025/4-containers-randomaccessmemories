@@ -12,6 +12,8 @@ response. If parsing fails or the OpenAI client is unavailable, it
 returns `None` so callers (like the poller) can handle provider failures.
 """
 
+# pylint: disable=duplicate-code
+
 from __future__ import annotations
 
 import json
@@ -22,8 +24,8 @@ from typing import Any, Dict, Optional
 
 try:
     import openai
-except Exception:  # pragma: no cover - openai may not be installed in test env
-    # pylint: disable=broad-exception-caught,invalid-name
+except Exception:  # pragma: no cover  # pylint: disable=broad-exception-caught
+    # pylint: disable=invalid-name
     openai = None
 
 logger = logging.getLogger(__name__)
