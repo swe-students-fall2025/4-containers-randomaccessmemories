@@ -1,14 +1,15 @@
 """Tests for search functionality on notes collection."""
 
-import sys
 import os
+import sys
 from datetime import datetime
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from app.db import Database, get_notes_collection
 
-from app.db import get_notes_collection, Database
+# Add parent directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 @pytest.fixture
@@ -55,7 +56,7 @@ def sample_notes():
     Database.close()
 
 
-def test_search_in_transcript(sample_notes):
+def test_search_in_transcript(sample_notes):  # pylint: disable=unused-argument
     """Test searching notes by transcript content."""
     notes_col = get_notes_collection()
 
@@ -69,7 +70,7 @@ def test_search_in_transcript(sample_notes):
     assert any("meeting" in note["transcript"].lower() for note in results)
 
 
-def test_search_in_keywords(sample_notes):
+def test_search_in_keywords(sample_notes):  # pylint: disable=unused-argument
     """Test searching notes by keywords."""
     notes_col = get_notes_collection()
 
@@ -83,7 +84,7 @@ def test_search_in_keywords(sample_notes):
     assert any("hiring" in note["keywords"].lower() for note in results)
 
 
-def test_search_case_insensitive(sample_notes):
+def test_search_case_insensitive(sample_notes):  # pylint: disable=unused-argument
     """Test that search is case insensitive."""
     notes_col = get_notes_collection()
 
@@ -104,7 +105,7 @@ def test_search_case_insensitive(sample_notes):
     assert len(results_upper) == len(results_lower)
 
 
-def test_search_multiple_fields(sample_notes):
+def test_search_multiple_fields(sample_notes):  # pylint: disable=unused-argument
     """Test searching across multiple fields with OR."""
     notes_col = get_notes_collection()
 
@@ -126,7 +127,7 @@ def test_search_multiple_fields(sample_notes):
     assert len(results) > 0
 
 
-def test_search_no_results(sample_notes):
+def test_search_no_results(sample_notes):  # pylint: disable=unused-argument
     """Test search with no matching results."""
     notes_col = get_notes_collection()
 
@@ -139,7 +140,7 @@ def test_search_no_results(sample_notes):
     assert len(results) == 0
 
 
-def test_search_partial_match(sample_notes):
+def test_search_partial_match(sample_notes):  # pylint: disable=unused-argument
     """Test search with partial word match."""
     notes_col = get_notes_collection()
 

@@ -12,8 +12,8 @@ def create_app() -> Flask:
     app.config["MAX_CONTENT_LENGTH"] = Config.MAX_FILE_MB * 1024 * 1024
     CORS(app)
 
-    # Register routes
-    from .routes import bp as routes_bp
+    # Register routes - import moved inside function to avoid circular imports
+    from .routes import bp as routes_bp  # pylint: disable=import-outside-toplevel
 
     app.register_blueprint(routes_bp)
 

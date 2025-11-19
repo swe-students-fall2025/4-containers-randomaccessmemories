@@ -15,7 +15,7 @@ def _oid(id_str: str):
     """Convert string to ObjectId, return None if invalid."""
     try:
         return ObjectId(id_str)
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         return None
 
 
@@ -40,7 +40,7 @@ def upload_audio():
         fid = save_audio_to_gridfs(file, file.filename or "audio.webm")
     except ValueError as e:
         return jsonify({"error": str(e)}), 413
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         return jsonify({"error": f"upload failed: {e}"}), 500
 
     rec = {
@@ -82,7 +82,7 @@ def upload_audio():
             recordings.update_one(
                 {"_id": rid}, {"$set": {"status": "done", "language": language}}
             )
-        except Exception as ex:
+        except Exception as ex:  # pylint: disable=broad-exception-caught
             recordings.update_one(
                 {"_id": rid}, {"$set": {"status": "error", "error": str(ex)}}
             )
@@ -121,10 +121,10 @@ def list_notes():
     return jsonify(items)
 
 
-@bp.get("/notes/<id>")
-def note_detail(id):
+@bp.get("/notes/<recording_id>")
+def note_detail(recording_id):  # pylint: disable=redefined-builtin
     """Get detailed note information by recording ID."""
-    oid = _oid(id)
+    oid = _oid(recording_id)
     if not oid:
         return jsonify({"error": "invalid id"}), 400
     rec = get_recordings_collection().find_one({"_id": oid})
@@ -177,10 +177,10 @@ def search_notes():
     return jsonify(out)
 
 
-@bp.post("/process/<id>")
-def process_now(id):
+@bp.post("/process/<recording_id>")
+def process_now(recording_id):  # pylint: disable=redefined-builtin
     """Force (re)process a recording (useful when PROCESS_INLINE=false)."""
-    oid = _oid(id)
+    oid = _oid(recording_id)
     if not oid:
         return jsonify({"error": "invalid id"}), 400
     recs = get_recordings_collection()
@@ -217,7 +217,7 @@ def process_now(id):
         recs.update_one(
             {"_id": rec["_id"]}, {"$set": {"status": "done", "language": language}}
         )
-    except Exception as ex:
+    except Exception as ex:  # pylint: disable=broad-exception-caught
         recs.update_one(
             {"_id": rec["_id"]}, {"$set": {"status": "error", "error": str(ex)}}
         )

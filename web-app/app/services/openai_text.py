@@ -1,6 +1,7 @@
+"""OpenAI text processing service."""
+import json
 from flask import current_app
 from openai import OpenAI
-import json
 
 SUMMARY_PROMPT = """You are a note-taking assistant.
 Given a transcript, produce:
@@ -13,12 +14,14 @@ Transcript:
 
 
 def _client() -> OpenAI:
+    """Create OpenAI client."""
     key = current_app.config["OPENAI_API_KEY"]
     base = current_app.config.get("OPENAI_BASE_URL")
     return OpenAI(api_key=key, base_url=base) if base else OpenAI(api_key=key)
 
 
 def summarize_and_keywords(transcript: str) -> dict:
+    """Generate summary and keywords from transcript."""
     model = current_app.config["OPENAI_TEXT_MODEL"]
     client = _client()
     resp = client.chat.completions.create(
@@ -30,6 +33,8 @@ def summarize_and_keywords(transcript: str) -> dict:
     data = json.loads(resp.choices[0].message.content)
     return {
         "summary": data.get("summary", ""),
-        "keywords": [k.strip() for k in data.get("topics", "").split(",") if k.strip()],
+        "keywords": [
+            k.strip() for k in data.get("topics", "").split(",") if k.strip()
+        ],
         "action_items": data.get("action_items", []),
     }
