@@ -99,10 +99,23 @@ def transcribe(
 
     bio = io.BytesIO(audio_bytes)
     # some clients require a filename attribute on the file-like object
-    bio.name = getattr(bio, "name", "audio.wav")
+    bio.name = "audio.mp3"  # Default to mp3 as it's widely supported
 
     try:
-        # Preferred modern shape: openai.Audio.transcribe
+        # Try new OpenAI client (v1.0.0+) first
+        if hasattr(openai, "OpenAI"):
+            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            bio.seek(0)
+            logger.info(f"Attempting transcription with model: {model or 'whisper-1'}, file size: {len(audio_bytes)} bytes")
+            resp = client.audio.transcriptions.create(
+                model=model or "whisper-1",
+                file=bio
+            )
+            text = _extract_text_from_resp(resp)
+            logger.info(f"Transcription successful, text length: {len(text) if text else 0}")
+            return {"text": text} if text is not None else None
+
+        # Fallback: Preferred modern shape: openai.Audio.transcribe
         # pylint: disable=no-member
         if hasattr(openai, "Audio") and hasattr(openai.Audio, "transcribe"):
             resp = openai.Audio.transcribe(model=model, file=bio)  # type: ignore

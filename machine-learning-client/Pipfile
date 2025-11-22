@@ -10,6 +10,7 @@ pydub = "*"
 python-dotenv = "*"
 pylint = "*"
 black = "*"
+requests = "*"
 
 [dev-packages]
 pytest = "*"

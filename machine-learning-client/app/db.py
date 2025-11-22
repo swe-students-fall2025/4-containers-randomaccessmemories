@@ -48,6 +48,8 @@ def get_client() -> MongoClient:
     global _client  # pylint: disable=global-statement
     if _client is None:
         uri = _get_mongo_uri()
+        import logging
+        logging.info(f"Connecting to MongoDB with URI: {uri}")
         _client = MongoClient(uri)
     return _client
 
