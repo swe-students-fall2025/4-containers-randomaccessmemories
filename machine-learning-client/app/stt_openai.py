@@ -106,13 +106,19 @@ def transcribe(
         if hasattr(openai, "OpenAI"):
             client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             bio.seek(0)
-            logger.info(f"Attempting transcription with model: {model or 'whisper-1'}, file size: {len(audio_bytes)} bytes")
+            logger.info(
+                "Attempting transcription with model: %s, file size: %d bytes",
+                model or 'whisper-1', len(audio_bytes)
+            )
             resp = client.audio.transcriptions.create(
                 model=model or "whisper-1",
                 file=bio
             )
             text = _extract_text_from_resp(resp)
-            logger.info(f"Transcription successful, text length: {len(text) if text else 0}")
+            logger.info(
+                "Transcription successful, text length: %d",
+                len(text) if text else 0
+            )
             return {"text": text} if text is not None else None
 
         # Fallback: Preferred modern shape: openai.Audio.transcribe

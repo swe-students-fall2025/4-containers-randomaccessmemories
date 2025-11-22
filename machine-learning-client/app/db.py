@@ -48,8 +48,8 @@ def get_client() -> MongoClient:
     global _client  # pylint: disable=global-statement
     if _client is None:
         uri = _get_mongo_uri()
-        import logging
-        logging.info(f"Connecting to MongoDB with URI: {uri}")
+        import logging  # pylint: disable=import-outside-toplevel
+        logging.info("Connecting to MongoDB with URI: %s", uri)
         _client = MongoClient(uri)
     return _client
 
@@ -162,7 +162,7 @@ def insert_structured_note(
     return res.inserted_id
 
 
-# pylint: disable=too-many-arguments,too-many-positional-arguments
+# pylint: disable=too-many-arguments
 def insert_note(
     recording_id: ObjectId | str,
     transcript: str,

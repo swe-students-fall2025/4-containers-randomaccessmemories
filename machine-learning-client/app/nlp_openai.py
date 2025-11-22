@@ -125,15 +125,15 @@ def generate_structured_note(
             if not raw_text:
                 logger.warning("No content in ChatCompletion response")
                 return None
-                
+
             json_str = _extract_json(raw_text)
             if not json_str:
                 logger.warning("No JSON found in response: %s", raw_text[:200])
                 return None
-                
+
             parsed = json.loads(json_str)
             return parsed
-            
+
         # Fallback to old API
         # pylint: disable=no-member
         resp = openai.ChatCompletion.create(  # type: ignore

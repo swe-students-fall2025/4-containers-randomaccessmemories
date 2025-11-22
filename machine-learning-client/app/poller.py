@@ -91,7 +91,7 @@ def process_pending(limit: int = 10) -> int:
 
             # generate structured note
             note = _safe_generate_notes(transcription_text)
-            logger.info(f"Generated note: {note}")
+            logger.info("Generated note: %s", note)
             if note:
                 db.insert_structured_note(transcription_id, note)
 
@@ -106,7 +106,10 @@ def process_pending(limit: int = 10) -> int:
                     else note.get("highlights") if note else []
                 )
                 action_items = note.get("action_items") if note else []
-                logger.info(f"Summary: {summary}, Keywords: {keywords}, Actions: {action_items}")
+                logger.info(
+                    "Summary: %s, Keywords: %s, Actions: %s",
+                    summary, keywords, action_items
+                )
                 transcript_text = stt_result.get("text")
                 # if the original record used 'file_id', mirror it to
                 # audio_gridfs_id for web-app compatibility
