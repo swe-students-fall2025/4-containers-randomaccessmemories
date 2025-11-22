@@ -24,7 +24,7 @@ except Exception:  # pragma: no cover # pylint: disable=broad-exception-caught
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_STT_MODEL = os.getenv("OPENAI_STT_MODEL", "gpt-4o-transcribe")
+DEFAULT_STT_MODEL = os.getenv("OPENAI_STT_MODEL", "whisper-1")
 
 
 def _ensure_api_key() -> None:
