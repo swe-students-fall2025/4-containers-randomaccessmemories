@@ -1,226 +1,240 @@
-"""Flask routes for audio notes API."""
+"""Flask routes for the audio notes web application."""
 
-import datetime
+from datetime import datetime
+from functools import wraps
+from io import BytesIO
+
 from bson import ObjectId
-from flask import Blueprint, current_app, jsonify, request
-from .db import Database, get_recordings_collection, get_notes_collection
-from .storage import save_audio_to_gridfs
-from .services.openai_speech import transcribe_audio_bytes
-from .services.openai_text import summarize_and_keywords
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    session,
+    url_for,
+)
+from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
-bp = Blueprint("routes", __name__)
+from .db import get_db, get_fs
 
-
-def _oid(id_str: str):
-    """Convert string to ObjectId, return None if invalid."""
-    try:
-        return ObjectId(id_str)
-    except Exception:  # pylint: disable=broad-exception-caught
-        return None
-
-
-@bp.get("/")
-def health():
-    """Health check endpoint."""
-    return "Audio Note Web App is running!", 200
+bp = Blueprint("main", __name__)
 
 
-@bp.post("/upload")
-def upload_audio():
-    """
-    Multipart form-data:
-      - file: audio/webm|wav|mp3|m4a|ogg|mp4
-    Returns: { recording_id }
-    """
-    if "file" not in request.files:
-        return jsonify({"error": "no file"}), 400
-    file = request.files["file"]
+# Helper function to check if user is logged in
+def login_required(f):
+    """Decorator to require login for routes."""
 
-    try:
-        fid = save_audio_to_gridfs(file, file.filename or "audio.webm")
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 413
-    except Exception as e:  # pylint: disable=broad-exception-caught
-        return jsonify({"error": f"upload failed: {e}"}), 500
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user_id" not in session:
+            flash("Please log in to access this page.", "error")
+            return redirect(url_for("main.login"))
+        return f(*args, **kwargs)
 
-    rec = {
-        "audio_gridfs_id": fid,
-        "created_at": datetime.datetime.utcnow(),
-        "status": "pending",
-        "language": None,
-        "duration_sec": None,
-        "error": None,
+    return decorated_function
+
+
+@bp.route("/")
+def index():
+    """Redirect root to dashboard if logged in, otherwise to login."""
+    if "user_id" in session:
+        return redirect(url_for("main.dashboard"))
+    return redirect(url_for("main.login"))
+
+
+@bp.route("/login", methods=["GET", "POST"])
+def login():
+    """Login page and handler."""
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+
+        if not username or not password:
+            flash("Please provide both username and password.", "error")
+            return render_template("login.html", username=username)
+
+        db = get_db()
+        user = db.users.find_one({"email": username})
+
+        if not user:
+            # Try finding by username instead
+            user = db.users.find_one({"username": username})
+
+        if user and check_password_hash(user.get("password_hash", ""), password):
+            session["user_id"] = str(user["_id"])
+            session["username"] = user.get("username", "User")
+            flash("Login successful!", "success")
+            return redirect(url_for("main.dashboard"))
+
+        flash("Invalid credentials. Please try again.", "error")
+        return render_template("login.html", username=username)
+
+    return render_template("login.html")
+
+
+@bp.route("/signup", methods=["GET"])
+def signup():
+    """Display signup page."""
+    return render_template("signup.html")
+
+
+@bp.route("/register", methods=["POST"])
+def register():
+    """Handle user registration."""
+    username = request.form.get("username", "").strip()
+    email = request.form.get("email", "").strip()
+
+    if not username or not email:
+        flash("Username and email are required.", "error")
+        return render_template("signup.html", username=username, email=email)
+
+    # Generate a default password (in production, send via email or use better flow)
+    default_password = "password123"
+
+    db = get_db()
+
+    # Check if user already exists
+    if db.users.find_one({"email": email}):
+        flash("Email already registered.", "error")
+        return render_template("signup.html", username=username, email=email)
+
+    if db.users.find_one({"username": username}):
+        flash("Username already taken.", "error")
+        return render_template("signup.html", username=username, email=email)
+
+    # Create user
+    password_hash = generate_password_hash(default_password)
+    user_doc = {
+        "username": username,
+        "email": email,
+        "password_hash": password_hash,
+        "created_at": datetime.utcnow(),
     }
-    recordings = get_recordings_collection()
-    rid = recordings.insert_one(rec).inserted_id
+    result = db.users.insert_one(user_doc)
 
-    if current_app.config["PROCESS_INLINE"]:
-        try:
-            audio_bytes = Database.get_gridfs().get(fid).read()
-            stt = transcribe_audio_bytes(
-                audio_bytes, filename=file.filename or "audio.webm"
-            )
-            transcript = stt.get("text", "")
-            language = stt.get("language")
-            enrich = (
-                summarize_and_keywords(transcript)
-                if transcript
-                else {"summary": "", "keywords": [], "action_items": []}
-            )
+    session["user_id"] = str(result.inserted_id)
+    session["username"] = username
 
-            notes = get_notes_collection()
-            notes.insert_one(
-                {
-                    "recording_id": rid,
-                    "transcript": transcript,
-                    "keywords": enrich["keywords"],
-                    "summary": enrich["summary"],
-                    "action_items": enrich.get("action_items", []),
-                    "created_at": datetime.datetime.utcnow(),
-                }
-            )
-            recordings.update_one(
-                {"_id": rid}, {"$set": {"status": "done", "language": language}}
-            )
-        except Exception as ex:  # pylint: disable=broad-exception-caught
-            recordings.update_one(
-                {"_id": rid}, {"$set": {"status": "error", "error": str(ex)}}
-            )
-
-    return jsonify({"recording_id": str(rid)}), 201
-
-
-@bp.get("/notes")
-def list_notes():
-    """Dashboard feed: latest recordings joined with note summary/keywords."""
-    pipeline = [
-        {"$sort": {"created_at": -1}},
-        {"$limit": 50},
-        {
-            "$lookup": {
-                "from": "notes",
-                "localField": "_id",
-                "foreignField": "recording_id",
-                "as": "note_docs",
-            }
-        },
-        {
-            "$project": {
-                "_id": 1,
-                "created_at": 1,
-                "status": 1,
-                "language": 1,
-                "summary": {"$arrayElemAt": ["$note_docs.summary", 0]},
-                "keywords": {"$arrayElemAt": ["$note_docs.keywords", 0]},
-            }
-        },
-    ]
-    items = list(get_recordings_collection().aggregate(pipeline))
-    for it in items:
-        it["_id"] = str(it["_id"])
-    return jsonify(items)
-
-
-@bp.get("/notes/<recording_id>")
-def note_detail(recording_id):  # pylint: disable=redefined-builtin
-    """Get detailed note information by recording ID."""
-    oid = _oid(recording_id)
-    if not oid:
-        return jsonify({"error": "invalid id"}), 400
-    rec = get_recordings_collection().find_one({"_id": oid})
-    if not rec:
-        return jsonify({"error": "not found"}), 404
-    note = get_notes_collection().find_one({"recording_id": rec["_id"]})
-    out = {
-        "id": str(rec["_id"]),
-        "created_at": rec["created_at"].isoformat(),
-        "status": rec["status"],
-        "language": rec.get("language"),
-        "summary": note.get("summary") if note else None,
-        "keywords": note.get("keywords") if note else None,
-        "action_items": note.get("action_items") if note else None,
-        "transcript": note.get("transcript") if note else None,
-    }
-    return jsonify(out)
-
-
-@bp.get("/search")
-def search_notes():
-    """Search notes by query string."""
-    q = (request.args.get("q") or "").strip()
-    if not q:
-        return jsonify([])
-    cursor = (
-        get_notes_collection()
-        .find(
-            {
-                "$or": [
-                    {"transcript": {"$regex": q, "$options": "i"}},
-                    {"keywords": {"$elemMatch": {"$regex": q, "$options": "i"}}},
-                ]
-            },
-            {"transcript": 0},
-        )
-        .sort("created_at", -1)
-        .limit(50)
+    flash(
+        f"Account created! Your password is: {default_password} (change it later)",
+        "success",
     )
-    out = []
-    for d in cursor:
-        out.append(
-            {
-                "recording_id": str(d["recording_id"]),
-                "summary": d.get("summary"),
-                "keywords": d.get("keywords"),
-                "created_at": d["created_at"].isoformat(),
-            }
-        )
-    return jsonify(out)
+    return redirect(url_for("main.dashboard"))
 
 
-@bp.post("/process/<recording_id>")
-def process_now(recording_id):  # pylint: disable=redefined-builtin
-    """Force (re)process a recording (useful when PROCESS_INLINE=false)."""
-    oid = _oid(recording_id)
-    if not oid:
-        return jsonify({"error": "invalid id"}), 400
-    recs = get_recordings_collection()
-    rec = recs.find_one({"_id": oid})
-    if not rec:
-        return jsonify({"error": "not found"}), 404
+@bp.route("/logout")
+def logout():
+    """Log out the current user."""
+    session.clear()
+    flash("Logged out successfully.", "success")
+    return redirect(url_for("main.login"))
 
-    fid = rec["audio_gridfs_id"]
+
+@bp.route("/dashboard")
+@login_required
+def dashboard():
+    """Main dashboard showing all recordings."""
+    db = get_db()
+    user_id = ObjectId(session["user_id"])
+
+    # Get all recordings for this user
+    recordings = list(
+        db.recordings.find({"user_id": user_id}).sort("created_at", -1).limit(50)
+    )
+
+    # Enrich with note data
+    for rec in recordings:
+        note = db.notes.find_one({"recording_id": rec["_id"]})
+        if note:
+            rec["summary"] = note.get("summary", "")
+            rec["keywords"] = note.get("keywords", [])
+        else:
+            rec["summary"] = ""
+            rec["keywords"] = []
+
+    return render_template("dashboard.html", recordings=recordings)
+
+
+@bp.route("/upload", methods=["GET", "POST"])
+@login_required
+def upload():
+    """Upload or record audio page."""
+    if request.method == "POST":
+        if "file" not in request.files:
+            return {"error": "No file provided"}, 400
+
+        file = request.files["file"]
+        if file.filename == "":
+            return {"error": "Empty filename"}, 400
+
+        # Save to GridFS
+        fs = get_fs()
+        filename = secure_filename(file.filename) if file.filename else "recording.webm"
+        file_id = fs.put(file.read(), filename=filename)
+
+        # Create recording document
+        db = get_db()
+        user_id = ObjectId(session["user_id"])
+        recording_doc = {
+            "user_id": user_id,
+            "file_id": file_id,
+            "audio_gridfs_id": file_id,
+            "filename": filename,
+            "status": "pending",
+            "created_at": datetime.utcnow(),
+        }
+        recording_id = db.recordings.insert_one(recording_doc).inserted_id
+
+        return {"success": True, "recording_id": str(recording_id)}, 200
+
+    return render_template("upload.html")
+
+
+@bp.route("/recording/<recording_id>")
+@login_required
+def recording_detail(recording_id):
+    """Show detail view for a single recording."""
+    db = get_db()
+    user_id = ObjectId(session["user_id"])
+
     try:
-        recs.update_one({"_id": rec["_id"]}, {"$set": {"status": "processing"}})
-        audio = Database.get_gridfs().get(fid).read()
-        stt = transcribe_audio_bytes(audio, filename="audio.webm")
-        transcript = stt.get("text", "")
-        language = stt.get("language")
-        enrich = (
-            summarize_and_keywords(transcript)
-            if transcript
-            else {"summary": "", "keywords": [], "action_items": []}
-        )
+        rec_id = ObjectId(recording_id)
+    except Exception:  # pylint: disable=broad-exception-caught
+        flash("Invalid recording ID.", "error")
+        return redirect(url_for("main.dashboard"))
 
-        get_notes_collection().update_one(
-            {"recording_id": rec["_id"]},
-            {
-                "$set": {
-                    "transcript": transcript,
-                    "keywords": enrich["keywords"],
-                    "summary": enrich["summary"],
-                    "action_items": enrich.get("action_items", []),
-                    "created_at": datetime.datetime.utcnow(),
-                }
-            },
-            upsert=True,
-        )
-        recs.update_one(
-            {"_id": rec["_id"]}, {"$set": {"status": "done", "language": language}}
-        )
-    except Exception as ex:  # pylint: disable=broad-exception-caught
-        recs.update_one(
-            {"_id": rec["_id"]}, {"$set": {"status": "error", "error": str(ex)}}
-        )
-        return jsonify({"error": str(ex)}), 500
+    recording = db.recordings.find_one({"_id": rec_id, "user_id": user_id})
+    if not recording:
+        flash("Recording not found.", "error")
+        return redirect(url_for("main.dashboard"))
 
-    return jsonify({"ok": True})
+    # Get associated note
+    note = db.notes.find_one({"recording_id": rec_id})
+
+    # Generate audio URL
+    file_id = recording.get("audio_gridfs_id") or recording.get("file_id")
+    audio_url = url_for("main.serve_audio", file_id=str(file_id)) if file_id else None
+
+    return render_template(
+        "detail.html", recording=recording, note=note, audio_url=audio_url
+    )
+
+
+@bp.route("/audio/<file_id>")
+@login_required
+def serve_audio(file_id):
+    """Serve audio file from GridFS."""
+    try:
+        fs = get_fs()
+        grid_out = fs.get(ObjectId(file_id))
+        return send_file(
+            BytesIO(grid_out.read()),
+            mimetype="audio/webm",
+            as_attachment=False,
+            download_name="audio.webm",
+        )
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        return {"error": f"Audio file not found: {str(e)}"}, 404

@@ -1,20 +1,23 @@
 """Flask application factory."""
 
 from flask import Flask
-from flask_cors import CORS
-from .config import Config
 
 
-def create_app() -> Flask:
-    """Create and configure Flask application."""
+def create_app():
+    """Create and configure the Flask application."""
     app = Flask(__name__)
+
+    # Load config
+    from .config import Config  # pylint: disable=import-outside-toplevel
+
     app.config.from_object(Config)
-    app.config["MAX_CONTENT_LENGTH"] = Config.MAX_FILE_MB * 1024 * 1024
-    CORS(app)
 
-    # Register routes - import moved inside function to avoid circular imports
-    from .routes import bp as routes_bp  # pylint: disable=import-outside-toplevel
+    # Secret key for sessions
+    app.secret_key = Config.SECRET_KEY
 
-    app.register_blueprint(routes_bp)
+    # Register blueprints
+    from . import routes  # pylint: disable=import-outside-toplevel
+
+    app.register_blueprint(routes.bp)
 
     return app
