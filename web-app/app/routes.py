@@ -1,6 +1,7 @@
 """Flask routes for the audio notes web application."""
 
 from datetime import datetime
+from functools import wraps
 from io import BytesIO
 
 from bson import ObjectId
@@ -25,7 +26,6 @@ bp = Blueprint("main", __name__)
 # Helper function to check if user is logged in
 def login_required(f):
     """Decorator to require login for routes."""
-    from functools import wraps
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
