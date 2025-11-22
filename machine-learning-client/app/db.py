@@ -19,7 +19,7 @@ from pymongo import MongoClient
 
 # Module-level cached client/db to avoid reconnecting repeatedly
 _client: Optional[MongoClient] = None
-_db = None
+_DB = None
 
 
 def _get_mongo_uri() -> str:
@@ -56,17 +56,17 @@ def get_client() -> MongoClient:
 
 def get_db() -> Any:
     """Return the configured database instance."""
-    global _db  # pylint: disable=global-statement
-    if _db is None:
+    global _DB  # pylint: disable=global-statement
+    if _DB is None:
         # pick DB name from URI or env
         dbname = os.getenv("MONGO_DB")
         client = get_client()
         if dbname:
-            _db = client[dbname]
+            _DB = client[dbname]
         else:
             # fallback to default database from URI
-            _db = client.get_default_database()
-    return _db
+            _DB = client.get_default_database()
+    return _DB
 
 
 def get_fs() -> gridfs.GridFS:
