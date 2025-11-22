@@ -1,6 +1,16 @@
-"""Placeholder main.py for the machine learning client."""
+"""Main entrypoint for the machine learning client: runs poller loop."""
+
+import time
+import logging
+from app.poller import process_pending
+
+logging.basicConfig(level=logging.INFO)
 
 if __name__ == "__main__":
-    print(
-        "Machine learning client placeholder running. Replace this with your ML logic."
-    )
+    logging.info("Machine learning client started. Processing pending recordings...")
+    while True:
+        processed_count = process_pending(limit=10)
+        if processed_count == 0:
+            time.sleep(10)  # Wait before polling again if nothing to do
+        else:
+            time.sleep(2)  # Shorter wait if work was done

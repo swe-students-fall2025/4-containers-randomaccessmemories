@@ -1,4 +1,8 @@
 [MESSAGES CONTROL]
 disable=
     broad-exception-caught,
-    too-many-return-statements
+    too-many-return-statements,
+    import-error,
+    too-many-branches,
+    too-many-locals,
+    invalid-name

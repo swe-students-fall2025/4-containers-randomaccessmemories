@@ -107,6 +107,34 @@ def generate_structured_note(
     )
 
     try:
+        # Try new OpenAI client (v1.0.0+) first
+        if hasattr(openai, "OpenAI"):
+            client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": user_msg},
+                ],
+                temperature=0.0,
+                max_tokens=max_tokens,
+                n=1,
+            )
+            # Extract text from new API response
+            raw_text = resp.choices[0].message.content if resp.choices else None
+            if not raw_text:
+                logger.warning("No content in ChatCompletion response")
+                return None
+
+            json_str = _extract_json(raw_text)
+            if not json_str:
+                logger.warning("No JSON found in response: %s", raw_text[:200])
+                return None
+
+            parsed = json.loads(json_str)
+            return parsed
+
+        # Fallback to old API
         # pylint: disable=no-member
         resp = openai.ChatCompletion.create(  # type: ignore
             model=model,

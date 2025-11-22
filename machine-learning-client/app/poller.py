@@ -78,15 +78,20 @@ def process_pending(limit: int = 10) -> int:
 
             # transcribe
             stt_result = _safe_transcribe(audio_bytes)
-            if not stt_result or "text" not in stt_result:
+            if not stt_result or "text" not in stt_result or not stt_result.get("text"):
                 raise RuntimeError("stt returned no transcription")
 
+            transcription_text = stt_result.get("text")
+            if not transcription_text:
+                raise RuntimeError("stt returned empty transcription")
+
             transcription_id = db.insert_transcription(
-                rid, stt_result.get("text"), stt_result.get("confidence")
+                rid, transcription_text, stt_result.get("confidence")
             )
 
             # generate structured note
-            note = _safe_generate_notes(stt_result.get("text"))
+            note = _safe_generate_notes(transcription_text)
+            logger.info("Generated note: %s", note)
             if note:
                 db.insert_structured_note(transcription_id, note)
 
@@ -101,6 +106,12 @@ def process_pending(limit: int = 10) -> int:
                     else note.get("highlights") if note else []
                 )
                 action_items = note.get("action_items") if note else []
+                logger.info(
+                    "Summary: %s, Keywords: %s, Actions: %s",
+                    summary,
+                    keywords,
+                    action_items,
+                )
                 transcript_text = stt_result.get("text")
                 # if the original record used 'file_id', mirror it to
                 # audio_gridfs_id for web-app compatibility
