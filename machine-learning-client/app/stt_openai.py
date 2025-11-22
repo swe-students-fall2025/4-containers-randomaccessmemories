@@ -108,16 +108,15 @@ def transcribe(
             bio.seek(0)
             logger.info(
                 "Attempting transcription with model: %s, file size: %d bytes",
-                model or 'whisper-1', len(audio_bytes)
+                model or "whisper-1",
+                len(audio_bytes),
             )
             resp = client.audio.transcriptions.create(
-                model=model or "whisper-1",
-                file=bio
+                model=model or "whisper-1", file=bio
             )
             text = _extract_text_from_resp(resp)
             logger.info(
-                "Transcription successful, text length: %d",
-                len(text) if text else 0
+                "Transcription successful, text length: %d", len(text) if text else 0
             )
             return {"text": text} if text is not None else None
 

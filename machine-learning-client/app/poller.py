@@ -108,7 +108,9 @@ def process_pending(limit: int = 10) -> int:
                 action_items = note.get("action_items") if note else []
                 logger.info(
                     "Summary: %s, Keywords: %s, Actions: %s",
-                    summary, keywords, action_items
+                    summary,
+                    keywords,
+                    action_items,
                 )
                 transcript_text = stt_result.get("text")
                 # if the original record used 'file_id', mirror it to

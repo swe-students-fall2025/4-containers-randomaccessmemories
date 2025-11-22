@@ -49,6 +49,7 @@ def get_client() -> MongoClient:
     if _client is None:
         uri = _get_mongo_uri()
         import logging  # pylint: disable=import-outside-toplevel
+
         logging.info("Connecting to MongoDB with URI: %s", uri)
         _client = MongoClient(uri)
     return _client
