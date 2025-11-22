@@ -16,10 +16,20 @@
       <p class="app-subtitle">Full view of a single recording.</p>
 
       <nav class="top-nav">
-        <a href="{{ url_for('dashboard') }}" class="nav-current">Dashboard</a>
-        <a href="{{ url_for('upload') }}">Upload / Record</a>
+        <a href="{{ url_for('main.dashboard') }}" class="nav-current">Dashboard</a>
+        <a href="{{ url_for('main.upload') }}">Upload / Record</a>
       </nav>
     </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="notice {{ 'notice-ok' if category == 'success' else 'notice-error' }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
     <main>
       <section class="panel">
@@ -87,7 +97,7 @@
         </div>
 
         <div class="mt-12">
-          <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+          <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
             ← Back to dashboard
           </a>
         </div>

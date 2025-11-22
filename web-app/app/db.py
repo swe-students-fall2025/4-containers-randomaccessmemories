@@ -51,3 +51,14 @@ def get_recordings_collection():
 def get_notes_collection():
     """Get notes collection."""
     return Database.get_db().notes
+
+
+# Add these two helper functions for routes.py compatibility
+def get_db():
+    """Get database instance (helper for routes)."""
+    return Database.get_db()
+
+
+def get_fs():
+    """Get GridFS instance (helper for routes)."""
+    return Database.get_gridfs()

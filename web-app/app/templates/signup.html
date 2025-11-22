@@ -16,10 +16,20 @@
       <p class="app-subtitle">Create an account to get started!</p>
     </header>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="notice {{ 'notice-ok' if category == 'success' else 'notice-error' }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     <main>
       <section class="panel login-container">
         <h2>Sign Up</h2>
-        <form method="POST" action="{{ url_for('register') }}" class="login-form">
+        <form method="POST" action="{{ url_for('main.register') }}" class="login-form">
           <div class="form-group">
             <label for="username">Username</label>
             <input 
@@ -50,7 +60,7 @@
         <div class="login-footer">
           <p>
             Already have an account? 
-            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('main.login') }}">Login</a>
           </p>
         </div>
       </section>

@@ -16,10 +16,20 @@
       <p class="app-subtitle">Record from your microphone or upload an audio file.</p>
 
       <nav class="top-nav">
-        <a href="{{ url_for('dashboard') }}">Dashboard</a>
-        <a class="nav-current" href="{{ url_for('upload') }}">Upload / Record</a>
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        <a class="nav-current" href="{{ url_for('main.upload') }}">Upload / Record</a>
       </nav>
     </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="notice {{ 'notice-ok' if category == 'success' else 'notice-error' }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
     <main>
       <section class="panel">
@@ -41,7 +51,7 @@
         <div class="mt-12">
           <p><strong>Upload an audio file</strong></p>
 
-          <form id="file-upload-form" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data"
+          <form id="file-upload-form" action="{{ url_for('main.upload') }}" method="post" enctype="multipart/form-data"
             class="mt-8">
 
             <label for="file-input">Choose an audio file:</label>
